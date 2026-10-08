@@ -1,0 +1,349 @@
+// To switch to PostgreSQL: run  npm run db:migrate-postgres
+// Supabase/Neon/Railway are all FREE and support 5,000+ concurrent connections
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Shop {
+  id        String    @id @default(uuid())
+  name      String
+  ownerName String
+  phone     String
+  address   String
+  gstin     String?
+  shopType  String    @default("RETAIL") // 'WHOLESALE' or 'RETAIL'
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  products       Product[]
+  customers      Customer[]
+  sales          Sale[]
+  expenses       Expense[]
+  suppliers      Supplier[]
+  purchases      Purchase[]
+  creditRecords  CreditRecord[]
+  memories       Memory[]
+  alerts         Alert[]
+  users          User[]
+
+  // Business Ecosystem Relationships
+  wholesalerRelationships BusinessRelationship[] @relation("Wholesaler")
+  retailerRelationships   BusinessRelationship[] @relation("Retailer")
+}
+
+model BusinessRelationship {
+  id           String   @id @default(uuid())
+  wholesalerId String
+  retailerId   String
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  wholesaler   Shop     @relation("Wholesaler", fields: [wholesalerId], references: [id])
+  retailer     Shop     @relation("Retailer", fields: [retailerId], references: [id])
+
+  @@unique([wholesalerId, retailerId])
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  shopId       String   @default("shop-1")
+  code         String?
+  name         String
+  nameTa       String
+  category     String
+  costPrice    Float
+  sellingPrice Float
+  currentStock Int
+  minStock     Int
+  unit         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  shop         Shop?    @relation(fields: [shopId], references: [id])
+
+  @@index([shopId])
+  @@index([category])
+}
+
+model Customer {
+  id             String   @id @default(uuid())
+  shopId         String   @default("shop-1")
+  name           String
+  phone          String
+  address        String?
+  creditLimit    Float
+  totalPurchases Float    @default(0)
+  totalUdhar     Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  shop           Shop?    @relation(fields: [shopId], references: [id])
+  sales          Sale[]
+
+  @@index([shopId])
+  @@index([phone])
+}
+
+model Sale {
+  id            String     @id @default(uuid())
+  shopId        String     @default("shop-1")
+  invoiceNo     String     @unique
+  date          DateTime   @default(now())
+  customerName  String
+  customerPhone String?
+  customerId    String?
+  subtotal      Float
+  discount      Float      @default(0)
+  tax           Float      @default(0)
+  total         Float
+  paymentType   String
+  amountPaid    Float
+  balanceDue    Float
+  notes         String?
+  createdAt     DateTime   @default(now())
+
+  shop          Shop?      @relation(fields: [shopId], references: [id])
+  customer      Customer?  @relation(fields: [customerId], references: [id])
+  items         SaleItem[]
+
+  @@index([shopId])
+  @@index([date])
+  @@index([customerId])
+}
+
+model SaleItem {
+  id          String  @id @default(uuid())
+  saleId      String
+  productId   String
+  productName String
+  quantity    Int
+  unit        String
+  unitPrice   Float
+  total       Float
+
+  sale        Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@index([saleId])
+  @@index([productId])
+}
+
+model Expense {
+  id        String   @id @default(uuid())
+  shopId    String   @default("shop-1")
+  title     String
+  titleTa   String?
+  amount    Float
+  category  String
+  date      DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+
+  shop      Shop?    @relation(fields: [shopId], references: [id])
+
+  @@index([shopId])
+  @@index([date])
+}
+
+model Supplier {
+  id                 String     @id @default(uuid())
+  shopId             String     @default("shop-1")
+  name               String
+  phone              String?
+  address            String?
+  totalPurchases     Float      @default(0)
+  totalPaid          Float      @default(0)
+  outstandingBalance Float      @default(0)
+  lastPurchaseDate   DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  shop               Shop?      @relation(fields: [shopId], references: [id])
+  purchases          Purchase[]
+
+  @@index([shopId])
+}
+
+model Purchase {
+  id            String         @id @default(uuid())
+  shopId        String         @default("shop-1")
+  purchaseNo    String         @unique
+  date          DateTime       @default(now())
+  supplierId    String?
+  supplierName  String
+  total         Float
+  paymentStatus String
+  amountPaid    Float
+  balanceDue    Float
+  notes         String?
+  createdAt     DateTime       @default(now())
+
+  shop          Shop?          @relation(fields: [shopId], references: [id])
+  supplier      Supplier?      @relation(fields: [supplierId], references: [id])
+  items         PurchaseItem[]
+
+  @@index([shopId])
+  @@index([date])
+  @@index([supplierId])
+}
+
+model PurchaseItem {
+  id          String   @id @default(uuid())
+  purchaseId  String
+  productId   String
+  productName String
+  quantity    Int
+  unit        String
+  unitCost    Float
+  total       Float
+
+  purchase    Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseId])
+  @@index([productId])
+}
+
+model CreditRecord {
+  id                String   @id @default(uuid())
+  shopId            String   @default("shop-1")
+  type              String   // 'customer' or 'supplier'
+  partyId           String
+  partyName         String
+  partyPhone        String?
+  totalCredit       Float    @default(0)
+  amountPaid        Float    @default(0)
+  outstandingAmount Float    @default(0)
+  dueDate           DateTime?
+  status            String   @default("active")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  shop              Shop?    @relation(fields: [shopId], references: [id])
+
+  @@index([shopId])
+  @@index([partyId])
+}
+
+model Memory {
+  id              String   @id @default(uuid())
+  shopId          String   @default("shop-1")
+  title           String
+  titleTa         String?
+  description     String
+  category        String
+  entityName      String?
+  importance      String   @default("medium")
+  timestamp       DateTime @default(now())
+
+  shop            Shop?    @relation(fields: [shopId], references: [id])
+
+  @@index([shopId])
+  @@index([timestamp])
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  shopId      String   @default("shop-1")
+  type        String
+  priority    String
+  title       String
+  titleTa     String?
+  message     String
+  messageTa   String?
+  read        Boolean  @default(false)
+  actionLabel String?
+  actionRoute String?
+  date        DateTime @default(now())
+
+  shop        Shop?    @relation(fields: [shopId], references: [id])
+
+  @@index([shopId])
+  @@index([read])
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      String   // 'wholesale', 'retail', 'customer'
+  name      String
+  
+  shopId    String?
+  shop      Shop?    @relation(fields: [shopId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Scheme {
+  id                    String            @id
+  name                  String
+  fullName              String
+  nameTa                String
+  fullNameTa            String?
+  governmentLevel       String            // 'STATE' or 'CENTRAL'
+  department            String
+  departmentTa          String?
+  category              String            // 'CAPITAL_SUBSIDY', 'EMPLOYMENT_GENERATION', 'TECHNOLOGY_UPGRADATION', 'INTEREST_SUBVENTION', 'CREDIT_GUARANTEE'
+  description           String
+  descriptionTa         String
+  beneficiaryTypes      String            // JSON string array e.g. ["FIRST_GENERATION_ENTREPRENEUR", "WOMEN"]
+  businessTypes         String            // JSON string array e.g. ["MANUFACTURING", "SERVICE", "TRADING"]
+  projectCostMin        Float
+  projectCostMax        Float
+  subsidyPercentage     Float
+  subsidyMaximum        Float
+  interestSubvention    Float             @default(0)
+  ageRules              String            // JSON string object
+  educationRules        String            // JSON string object
+  residencyRules        String            // JSON string object
+  incomeRules           String            // JSON string object
+  sectorRules           String            // JSON string object
+  specialCategoryRules  String            // JSON string object
+  applicationUrl        String
+  officialSourceUrl     String
+  officialDocumentUrl   String
+  sourceAuthority       String
+  lastVerifiedAt        DateTime
+  effectiveFrom         DateTime
+  effectiveTo           DateTime?
+  status                String            @default("ACTIVE") // 'ACTIVE', 'UNDER_REVIEW', 'ARCHIVED'
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  auditLogs             SchemeAuditLog[]
+  sources               SchemeSource[]
+}
+
+model SchemeAuditLog {
+  id          String   @id @default(uuid())
+  schemeId    String
+  action      String   // 'CREATE', 'UPDATE', 'VERIFY', 'ARCHIVE', 'REVIEW'
+  changedBy   String
+  changes     String   // JSON string of changes
+  notes       String?
+  timestamp   DateTime @default(now())
+
+  scheme      Scheme   @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+}
+
+model SchemeSource {
+  id            String    @id @default(uuid())
+  schemeId      String
+  authority     String
+  title         String
+  documentUrl   String
+  portalUrl     String
+  version       String    @default("1.0")
+  effectiveDate DateTime?
+  verifiedAt    DateTime  @default(now())
+  status        String    @default("VERIFIED") // 'VERIFIED', 'NEEDS_REVIEW', 'HISTORICAL'
+  notes         String?
+
+  scheme        Scheme    @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+}

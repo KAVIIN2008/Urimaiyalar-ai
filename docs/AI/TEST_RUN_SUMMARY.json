@@ -1,0 +1,51 @@
+{
+  "total": 11,
+  "passed": 11,
+  "failed": 0,
+  "details": [
+    {
+      "test": "Telemetry Endpoint (/api/ai/telemetry)",
+      "status": "PASS"
+    },
+    {
+      "test": "Intent Parser: Greeting (\"Hi\")",
+      "status": "PASS"
+    },
+    {
+      "test": "Intent Parser: Farewell (\"Bye\")",
+      "status": "PASS"
+    },
+    {
+      "test": "Intent Parser: Business Query (\"What are my sales today?\")",
+      "status": "PASS"
+    },
+    {
+      "test": "Intent Parser: Business Action (\"Add 500 sales today\")",
+      "status": "PASS"
+    },
+    {
+      "test": "AI Planner: Multi-Agent Plan Generation",
+      "status": "PASS"
+    },
+    {
+      "test": "Approved Tool Execution: get_daily_sales (Deterministic DB Read)",
+      "status": "PASS"
+    },
+    {
+      "test": "Security Defense: Reject Arbitrary Tool Name",
+      "status": "PASS"
+    },
+    {
+      "test": "Security Defense: Prompt Injection / SQL Bypass Blocked",
+      "status": "PASS"
+    },
+    {
+      "test": "Multilingual Intent Parsing: Tamil (\"இன்னைக்கு 500 ரூபாய் sales add பண்ணு\")",
+      "status": "PASS"
+    },
+    {
+      "test": "End-to-End Grounded Chat Pipeline: Greeting",
+      "status": "PASS"
+    }
+  ]
+}

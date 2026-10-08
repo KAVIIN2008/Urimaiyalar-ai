@@ -1,0 +1,6 @@
+{
+  "name": "URIMAIYALAR AI",
+  "description": "Tamil Nadu micro and small business intelligence platform with Tamil and English voice interaction, deterministic business memory, inventory, credit ledger, and AI insights.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

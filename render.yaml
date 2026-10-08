@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: urimaiyalar-ai
+    env: node
+    buildCommand: npm install --include=dev && npx prisma generate && npx prisma db push && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
