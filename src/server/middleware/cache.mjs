@@ -74,7 +74,7 @@ function cacheMiddleware(namespace, ttlSeconds = 60) {
   return async (req, res, next) => {
     if (req.method !== 'GET') return next();
     const shopId = req.query.shopId || 'default';
-    const cacheKey = ${namespace}::;
+    const cacheKey = `${namespace}::${key}`;
     try {
       const cached = await get(cacheKey);
       if (cached) {
@@ -97,7 +97,7 @@ function cacheMiddleware(namespace, ttlSeconds = 60) {
  * Invalidates cache for a shopId namespace after write operations
  */
 async function invalidateShop(namespace, shopId) {
-  await del(${namespace}:);
+  await del(`${namespace}:${key}`);
 }
 
 export { initRedis, get, set, del, cacheMiddleware, invalidateShop };
