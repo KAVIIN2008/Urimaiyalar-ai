@@ -1,8 +1,8 @@
 /**
- * URIMAIYALAR OS — Smart Cache Layer
+ * URIMAIYALAR OS ï¿½ Smart Cache Layer
  * Uses Upstash Redis (FREE serverless) when available.
  * Falls back to in-memory LRU cache when Redis is not configured.
- * Zero config required — works out of the box, gets faster with Redis.
+ * Zero config required ï¿½ works out of the box, gets faster with Redis.
  */
 
 const CACHE = new Map();                  // in-memory fallback
@@ -15,7 +15,7 @@ async function initRedis() {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) {
-    console.log('[CACHE] No Redis config — using in-memory cache (upgrade to Upstash free tier for Redis)');
+    console.log('[CACHE] No Redis config ï¿½ using in-memory cache (upgrade to Upstash free tier for Redis)');
     return;
   }
   try {
@@ -46,7 +46,7 @@ async function set(key, value, ttlSeconds = 60) {
   }
   CACHE.set(key, value);
   TTL_MAP.set(key, Date.now() + ttlSeconds * 1000);
-  // Prevent memory leak — cap at 5000 entries
+  // Prevent memory leak ï¿½ cap at 5000 entries
   if (CACHE.size > 5000) {
     const firstKey = CACHE.keys().next().value;
     CACHE.delete(firstKey); TTL_MAP.delete(firstKey);
@@ -67,14 +67,14 @@ async function del(pattern) {
 }
 
 /**
- * Express middleware factory — caches GET responses by shopId + URL
+ * Express middleware factory ï¿½ caches GET responses by shopId + URL
  * Usage: router.get('/customers', cacheMiddleware('customers', 30), handler)
  */
 function cacheMiddleware(namespace, ttlSeconds = 60) {
   return async (req, res, next) => {
     if (req.method !== 'GET') return next();
     const shopId = req.query.shopId || 'default';
-    const cacheKey = ${namespace}::;
+    const cacheKey = `${namespace}:${shopId}:${req.originalUrl}`;
     try {
       const cached = await get(cacheKey);
       if (cached) {
@@ -97,7 +97,7 @@ function cacheMiddleware(namespace, ttlSeconds = 60) {
  * Invalidates cache for a shopId namespace after write operations
  */
 async function invalidateShop(namespace, shopId) {
-  await del(${namespace}:);
+  await del(`${namespace}:${shopId}:`);
 }
 
 export { initRedis, get, set, del, cacheMiddleware, invalidateShop };
