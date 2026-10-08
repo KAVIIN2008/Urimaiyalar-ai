@@ -21,7 +21,7 @@ export function getAudioContext(): AudioContext | null {
   return audioCtx;
 }
 
-export type SoundEffectType = 'mic_start' | 'mic_stop' | 'action_success' | 'click' | 'warning';
+export type SoundEffectType = 'mic_start' | 'mic_stop' | 'action_success' | 'action_delete' | 'click' | 'warning';
 
 /**
  * Play instantaneous synthesized chime sounds without external audio asset downloads.

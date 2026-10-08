@@ -1,4 +1,4 @@
-import { MultiAgentSystem } from './src/utils/multiAgent.ts';
+import { MultiAgentSystem } from '../src/utils/multiAgent.ts';
 
 // Mock DB
 const mockDb = {

@@ -1,5 +1,5 @@
 // Test Multi-Agent System orchestration pipeline
-import { executeMultiAgentSystem } from './src/services/multiAgentSystem.ts';
+import { executeMultiAgentSystem } from '../src/services/multiAgentSystem.ts';
 
 async function run() {
   console.log('--- TEST 1: Complex Multi-Domain Request (Sales + Inventory + Finance) ---');
